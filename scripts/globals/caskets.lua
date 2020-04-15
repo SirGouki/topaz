@@ -723,7 +723,7 @@ local function giveItem(player, npc, itemNum)
                     if player:addItem(itemID, 33) then
                         messageChest(player, "PLAYER_OBTAINS_ITEM", itemID, 0, 0, 0)
                         npc:setLocalVar(itemQuery, 0)
-                        checkItemChestIsEmpty(player, npc)
+                        checkItemChestIsEmpty(npc)
                     end
                 else
                     if player:addItem(itemID) then
@@ -890,7 +890,7 @@ tpz.caskets.onEventFinish = function(player, csid, option, npc)
     -- Basic chest var's
     ------------------------------------------------------------------
     local npc               = player:getEventTarget()
-    local chestId           = npc:getID();
+    local chestId           = npc:getID()
     local spawnStatus       = npc:getLocalVar("[caskets]SPAWNSTATUS")
     local locked            = npc:getLocalVar("[caskets]LOCKED")
     local lootType          = npc:getLocalVar("[caskets]LOOT_TYPE")

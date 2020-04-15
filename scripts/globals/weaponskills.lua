@@ -100,7 +100,7 @@ function calculateRawWSDmg(attacker, target, wsID, tp, action, wsParams, calcPar
 
     -- Calculate critrates
     local critRate = 0
-    
+
     if (wsParams.canCrit) then -- Work out critical hit ratios
         local nativecrit = 0
         critrate = fTP(tp,wsParams.crit100,wsParams.crit200,wsParams.crit300)
@@ -112,7 +112,7 @@ function calculateRawWSDmg(attacker, target, wsID, tp, action, wsParams, calcPar
         end
 
         -- Add on native crit hit rate (guesstimated, it actually follows an exponential curve)
-        nativecrit = (attacker:getStat(tpz.mod.DEX) - target:getStat(tpz.mod.AGI))*0.005; -- assumes +0.5% crit rate per 1 dDEX
+        nativecrit = (attacker:getStat(tpz.mod.DEX) - target:getStat(tpz.mod.AGI))*0.005 -- assumes +0.5% crit rate per 1 dDEX
         if (nativecrit > 0.2) then -- caps only apply to base rate, not merits and mods
             nativecrit = 0.2
         elseif (nativecrit < 0.05) then
@@ -143,10 +143,10 @@ function calculateRawWSDmg(attacker, target, wsID, tp, action, wsParams, calcPar
     hitdmg, calcParams = getSingleHitDamage(attacker, target, dmg, wsParams, calcParams)
     finaldmg = finaldmg + hitdmg
 
-    -- Have to calculate added bonus for SA/TA here; since it is done outside of the fTP multiplier
+    -- Have to calculate added bonus for SA/TA here since it is done outside of the fTP multiplier
     if attacker:getMainJob() == tpz.job.THF then
         -- Add DEX/AGI bonus to first hit if THF main and valid Sneak/Trick Attack
-        if calcParams.sneakApplicable then 
+        if calcParams.sneakApplicable then
             finaldmg = finaldmg +
                         (attacker:getStat(tpz.mod.DEX) * (1 + attacker:getMod(tpz.mod.SNEAK_ATK_DEX)/100) * calcParams.pdif) *
                         ((100+(attacker:getMod(tpz.mod.AUGMENTS_SA)))/100)
@@ -196,7 +196,7 @@ function calculateRawWSDmg(attacker, target, wsID, tp, action, wsParams, calcPar
         finaldmg = finaldmg + souleaterBonus(attacker, (calcParams.tpHitsLanded+calcParams.extraHitsLanded))
     end
 
-    -- Factor in "all hits" bonus damage mods 
+    -- Factor in "all hits" bonus damage mods
     local bonusdmg = attacker:getMod(tpz.mod.ALL_WSDMG_ALL_HITS) -- For any WS
     if (attacker:getMod(tpz.mod.WEAPONSKILL_DAMAGE_BASE + wsID) > 0) then -- For specific WS
         bonusdmg = bonusdmg + attacker:getMod(tpz.mod.WEAPONSKILL_DAMAGE_BASE + wsID)
@@ -392,7 +392,7 @@ function doMagicWeaponskill(attacker, target, wsID, wsParams, tp, action, primar
 
         dmg = dmg * ftp
 
-        -- Factor in "all hits" bonus damage mods 
+        -- Factor in "all hits" bonus damage mods
         local bonusdmg = attacker:getMod(tpz.mod.ALL_WSDMG_ALL_HITS) -- For any WS
         if (attacker:getMod(tpz.mod.WEAPONSKILL_DAMAGE_BASE + wsID) > 0) then -- For specific WS
             bonusdmg = bonusdmg + attacker:getMod(tpz.mod.WEAPONSKILL_DAMAGE_BASE + wsID)
@@ -649,7 +649,7 @@ function fTP(tp,ftp1,ftp2,ftp3)
     else
         print("fTP error: TP value is not between 1000-3000!")
     end
-    return 1; -- no ftp mod
+    return 1 -- no ftp mod
 end
 
 function calculatedIgnoredDef(tp, def, ignore1, ignore2, ignore3)
@@ -658,7 +658,7 @@ function calculatedIgnoredDef(tp, def, ignore1, ignore2, ignore3)
     elseif (tp>=2000 and tp<=3000) then
         return (ignore2 + ( ((ignore3-ignore2)/1000) * (tp-2000)))*def
     end
-    return 1; -- no def ignore mod
+    return 1 -- no def ignore mod
 end
 
 -- Given the raw ratio value (atk/def) and levels, returns the cRatio (min then max)
@@ -928,7 +928,7 @@ function getAlpha(level)
     elseif (level < 99) then
         alpha = 0.85
     else
-        alpha = 1; 
+        alpha = 1
     end
     return alpha
 end
@@ -944,7 +944,7 @@ function getMultiAttacks(attacker, target, numHits)
 
     -- Add Ambush Augments to Triple Attack
     if (attacker:hasTrait(76) and attacker:isBehind(target, 23)) then -- TRAIT_AMBUSH
-        tripleRate = tripleRate + attacker:getMerit(tpz.merit.AMBUSH) / 3; -- Value of Ambush is 3 per mert, augment gives +1 Triple Attack per merit
+        tripleRate = tripleRate + attacker:getMerit(tpz.merit.AMBUSH) / 3 -- Value of Ambush is 3 per mert, augment gives +1 Triple Attack per merit
     end
 
     -- QA/TA/DA can only proc on the first hit of each weapon or each fist

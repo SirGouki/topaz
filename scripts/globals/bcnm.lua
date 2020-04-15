@@ -298,7 +298,7 @@ local battlefields = {
         { 3,  195, 1438},   -- Shattering Stars (NIN LB5)
         { 4,  196, 1439},   -- Shattering Stars (DRG LB5)
      -- { 5,  197, 1175},   -- Cactuar Suave (KS30)
-     -- { 6,  198, 1178},   -- Eye of the Storm (KS30)
+        { 6,  198, 1178},   -- Eye of the Storm (KS30)
      -- { 7,  199, 1180},   -- The Scarlet King (KS30)
      -- { 8,  200,    0},   -- Roar! A Cat Burglar Bares Her Fangs (MKD10)
      -- { 9,  201, 3352},   -- Dragon Scales (KC50)
@@ -389,7 +389,7 @@ local battlefields = {
         { 6,  518, 1433},   -- Shattering Stars (DRK LB5)
         { 7,  519, 1435},   -- Shattering Stars (BRD LB5)
         { 8,  520, 1130},   -- Demolition Squad (BS60)
-     -- { 9,  521, 1552},   -- Die by the Sword (BS30) -- TODO: mob damage type rotation; mobskills furious flurry, smite of fury, whispers of ire
+     -- { 9,  521, 1552},   -- Die by the Sword (BS30) -- TODO: mob damage type rotation mobskills furious flurry, smite of fury, whispers of ire
         {10,  522, 1552},   -- Let Sleeping Dogs Die (BS30)
         {11,  523, 1130},   -- Brothers D'Aurphe (BS60)
         {12,  524, 1131},   -- Undying Promise (BS40) -- TODO: model size increases with each reraise
@@ -739,7 +739,7 @@ function findBattlefields(player, npc, itemId)
         return 0
     end
     for k, v in pairs(zbfs) do
-        if v[3] == itemId and checkReqs(player, npc, v[2], true) then
+        if v[3] == itemId and checkReqs(player, npc, v[2], true) and not player:battlefieldAtCapacity(v[2]) then
             mask = bit.bor(mask,math.pow(2,v[1]))
         end
     end
@@ -826,8 +826,7 @@ function TradeBCNM(player, npc, trade, onUpdate)
 
     -- open menu of valid battlefields
     local validBattlefields = findBattlefields(player, npc, itemId)
-    local battlefieldId = getBattlefieldIdByBit(player, validBattlefields)
-    if validBattlefields ~= 0 and not player:battlefieldAtCapacity(battlefieldId) then
+    if validBattlefields ~= 0 then
         if not onUpdate then
             player:startEvent(32000, 0, 0, 0, validBattlefields, 0, 0, 0, 0)
         end
@@ -842,7 +841,6 @@ end
 -----------------------------------------------
 
 function EventTriggerBCNM(player, npc)
-
     -- player is in battlefield and clicks to leave
     if player:getBattlefield() then
         player:startEvent(32003)
@@ -851,9 +849,9 @@ function EventTriggerBCNM(player, npc)
     -- player wants to register a new battlefield
     elseif not player:hasStatusEffect(tpz.effect.BATTLEFIELD) then
         local mask = findBattlefields(player, npc, 0)
+
         -- mask = 268435455 -- uncomment to open menu with all possible battlefields
-        local battlefieldId = getBattlefieldIdByBit(player, mask)
-        if mask ~= 0 and not player:battlefieldAtCapacity(battlefieldId) then
+        if mask ~= 0 then
             player:startEvent(32000, 0, 0, 0, mask, 0, 0, 0, 0)
             return true
         end

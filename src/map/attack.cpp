@@ -1,4 +1,4 @@
-/*
+﻿/*
 ===========================================================================
 
   Copyright (c) 2010-2015 Darkstar Dev Teams
@@ -444,6 +444,27 @@ bool CAttack::CheckCounter()
         m_victim->StatusEffectContainer->DelStatusEffect(EFFECT_PERFECT_COUNTER);
     }
     return m_isCountered;
+}
+
+bool CAttack::IsCovered()
+{
+    return m_isCovered;
+}
+
+bool CAttack::CheckCover()
+{
+    CBattleEntity* PCoverAbilityUser = m_attackRound->GetCoverAbilityUserEntity();
+    if (PCoverAbilityUser != nullptr && PCoverAbilityUser->isAlive())
+    {
+        m_isCovered = true;
+        m_victim = PCoverAbilityUser;
+    }
+    else
+    {
+        m_isCovered = false;
+    }
+
+    return m_isCovered;
 }
 
 /************************************************************************

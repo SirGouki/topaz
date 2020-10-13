@@ -62,6 +62,7 @@
 #include "../utils/attackutils.h"
 #include "../utils/charutils.h"
 #include "../utils/battleutils.h"
+#include "../utils/gardenutils.h"
 #include "../item_container.h"
 #include "../items/item_weapon.h"
 #include "../items/item_usable.h"
@@ -76,7 +77,6 @@
 #include "../packets/char_job_extra.h"
 #include "../packets/status_effects.h"
 #include "../mobskill.h"
-
 
 CCharEntity::CCharEntity()
 {
@@ -110,6 +110,7 @@ CCharEntity::CCharEntity()
     m_Wardrobe4 = std::make_unique<CItemContainer>(LOC_WARDROBE4);
 
     memset(&jobs, 0, sizeof(jobs));
+    // TODO: -Wno-class-memaccess - clearing an object on non-trivial type use assignment or value-init
     memset(&keys, 0, sizeof(keys));
     memset(&equip, 0, sizeof(equip));
     memset(&equipLoc, 0, sizeof(equipLoc));
@@ -118,6 +119,7 @@ CCharEntity::CCharEntity()
     memset(&nameflags, 0, sizeof(nameflags));
     memset(&menuConfigFlags, 0, sizeof(menuConfigFlags));
 
+    // TODO: -Wno-class-memaccess - clearing an object on non-trivial type use assignment or value-init
     memset(&m_SpellList, 0, sizeof(m_SpellList));
     memset(&m_LearnedAbilities, 0, sizeof(m_LearnedAbilities));
     memset(&m_TitleList, 0, sizeof(m_TitleList));
@@ -133,6 +135,8 @@ CCharEntity::CCharEntity()
     memset(&m_missionLog, 0, sizeof(m_missionLog));
     memset(&m_assaultLog, 0, sizeof(m_assaultLog));
     memset(&m_campaignLog, 0, sizeof(m_campaignLog));
+    memset(&m_eminenceLog, 0, sizeof(m_eminenceLog));
+    m_eminenceCache.activemap.reset();
 
     memset(&teleport, 0, sizeof(teleport));
     memset(&teleport.homepoint.menu, -1, sizeof(teleport.homepoint.menu));
@@ -151,7 +155,6 @@ CCharEntity::CCharEntity()
         m_missionLog[i].logExUpper = 0;
         m_missionLog[i].logExLower = 0;
     }
-
 
     m_copCurrent = 0;
     m_acpCurrent = 0;
@@ -208,6 +211,8 @@ CCharEntity::CCharEntity()
     m_LastYell = 0;
     m_moghouseID = 0;
     m_moghancementID = 0;
+
+    m_Substate = CHAR_SUBSTATE::SUBSTATE_NONE;
 
     PAI = std::make_unique<CAIContainer>(this, nullptr, std::make_unique<CPlayerController>(this),
         std::make_unique<CTargetFind>(this));
@@ -517,6 +522,11 @@ void CCharEntity::Tick(time_point tick)
         // Send an update packet at a regular interval to keep the player's death variables synced
         updatemask |= UPDATE_STATUS;
         m_deathSyncTime = tick + death_update_frequency;
+    }
+
+    if (m_moghouseID != 0)
+    {
+        gardenutils::UpdateGardening(this, true);
     }
 }
 
@@ -1019,8 +1029,7 @@ void CCharEntity::OnAbility(CAbilityState& state, action_t& action)
 
         action.id = this->id;
         action.actiontype = PAbility->getActionType();
-        //#TODO: unoffset this
-        action.actionid = PAbility->getID() + 16;
+        action.actionid = PAbility->getID();
 
         // #TODO: get rid of this to script, too
         if (PAbility->isPetAbility())
@@ -1150,7 +1159,7 @@ void CCharEntity::OnAbility(CAbilityState& state, action_t& action)
             //{
             //    battleutils::jumpAbility(this, PTarget, 3);
             //    action.messageID = 0;
-            //    this->loc.zone->PushPacket(this, CHAR_INRANGE_SELF, new CMessageBasicPacket(this, PTarget, PAbility->getID() + 16, 0, MSGBASIC_USES_JA));
+            //    this->loc.zone->PushPacket(this, CHAR_INRANGE_SELF, new CMessageBasicPacket(this, PTarget, PAbility->getID(), 0, MSGBASIC_USES_JA));
             //}
 
             //#TODO: move these 3 BST abilities to scripts
@@ -1685,6 +1694,9 @@ void CCharEntity::Die(duration _duration)
     PAI->ClearStateStack();
     PAI->Internal_Die(_duration);
 
+    // If player allegiance is not reset on death they will auto-homepoint
+    allegiance = ALLEGIANCE_PLAYER;
+
     // reraise modifiers
     if (this->getMod(Mod::RERAISE_I) > 0)
         m_hasRaise = 1;
@@ -1968,7 +1980,7 @@ void CCharEntity::SetMoghancement(uint16 moghancementID)
                 addModifier(Mod::EXPERIENCE_RETAINED, 5);
                 break;
             case MOGHANCEMENT_GARDENING:
-                // TODO: Reduces the chances of plants withering when gardening
+                addModifier(Mod::GARDENING_WILT_BONUS, 36);
                 break;
             case MOGHANCEMENT_DESYNTHESIS:
                 addModifier(Mod::DESYNTH_SUCCESS, 2);

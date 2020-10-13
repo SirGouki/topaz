@@ -1,4 +1,4 @@
-/*
+﻿/*
 ===========================================================================
 Copyright (c) Athena Dev Teams - Licensed under GNU G
 ===========================================================================
@@ -645,6 +645,9 @@ int _vShowMessage(MSGTYPE flag, const std::string& string)
             break;
         case MSG_ACTION: // Bright White  (mostly useless "player did this" info)
             strcat(prefix, CL_WHITE"[Action Info]" CL_RESET);
+            break;
+        case MSG_EXPLOIT: // Bright Red (Detected a likely exploit)
+            strcat(prefix, CL_RED"[Possible Exploit]" CL_RESET);
             break;
         default:
             ShowError("In function _vShowMessage() -> Invalid flag passed.\n");
